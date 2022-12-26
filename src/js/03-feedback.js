@@ -1,36 +1,51 @@
-import throttle from 'lodash.throttle'; 
+const formRef = document.querySelector('.feedback-form');
+const throttle = require('lodash.throttle');
 
+formRef.addEventListener('input', throttle(onTextareaInput, 500));
+formRef.addEventListener('submit', onFormSubmit);
 
-const STORAGE_KEY = 'feedback-form-state';
-const refs = {
-    form: document.querySelector('.feedback-form'),
-    textArea: document.querySelector('.feedback-form textarea'),
-    inputMail: document.querySelector('.feedback-form input')
+fillInTextarea();
+
+const formData = {
+  email: '',
+  message: '',
 };
-const formData = {};
 
-refs.form.addEventListener('submit', onFormSubmit);
-refs.form.addEventListener('input', throttle(onTextAreaInput, 500));
-
-populateTextArea();
-
-function onFormSubmit(e) {
-    e.preventDefault();
-    e.target.reset();
-    JSON.parse(localStorage.getItem(STORAGE_KEY));
-    localStorage.removeItem(STORAGE_KEY);
-    console.log(formData);
+function onTextareaInput(event) {
+  formData[event.target.name] = event.target.value;
+  localStorage.setItem('feedback-form-state', JSON.stringify(formData));
 }
-function onTextAreaInput() {
-    formData.email = refs.inputMail.value;
-    formData.message = refs.textArea.value;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+
+function onFormSubmit(event) {
+  event.preventDefault();
+  formData.email = '';
+  formData.message = '';
+
+  if (
+    event.currentTarget.elements.email.value === '' ||
+    event.currentTarget.elements.message.value === ''
+  ) {
+    alert('Для відправки форми мають бути заповнені всі поля!!!');
+    return;
+  }
+
+  event.currentTarget.reset();
+  console.log(JSON.parse(localStorage.getItem('feedback-form-state')));
+  localStorage.removeItem('feedback-form-state');
 }
-function populateTextArea() {
-    const savedMessage = JSON.parse(localStorage.getItem(STORAGE_KEY))
-    if (savedMessage) {
-        refs.inputMail.value = savedMessage.email;
-        refs.textArea.value = savedMessage.message;
+
+function fillInTextarea() {
+  try {
+    const dataArr = JSON.parse(localStorage.getItem('feedback-form-state'));
+    if (dataArr.email) {
+      formRef.elements.email.value = dataArr.email;
     }
-    // console.log(savedMessage)     
+
+    if (dataArr.message) {
+      formRef.elements.message.value = dataArr.message;
+    }
+  } catch (error) {
+    error.name;
+    error.message;
+  }
 }
